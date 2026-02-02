@@ -10,21 +10,17 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-// MANUAL CORS HANDLING (Nuclear Option)
+// ULTRA-PERMISSIVE CORS (Debug Mode)
 app.use((req, res, next) => {
     const origin = req.headers.origin;
-    // Allow explicitly the Vercel domain (and localhost for testing)
-    const allowed = ['https://barokah-rizky.vercel.app', 'http://localhost:5173', 'http://localhost:3000'];
+    console.log(`🔍 Incoming Request from Origin: ${origin}`);
 
-    if (allowed.includes(origin) || !origin) {
-        res.header("Access-Control-Allow-Origin", origin || "*");
-    }
-
+    // Echo the origin back to allow credentials (wildcard * won't work with credentials)
+    res.header("Access-Control-Allow-Origin", origin || "*");
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
     res.header("Access-Control-Allow-Credentials", "true");
 
-    // Intercept OPTIONS method
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
