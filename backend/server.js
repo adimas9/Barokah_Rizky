@@ -18,8 +18,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Explicitly handle Preflight requests for all routes
-app.options('*', cors());
+// Explicitly handle Preflight requests for all routes (Express 5 compatible)
+app.options(/(.*)/, cors());
 
 // ==========================================
 // 2. MIDDLEWARE
