@@ -16,18 +16,30 @@ const allowedOrigins = [
     process.env.FRONTEND_URL // Production frontend URL
 ].filter(Boolean);
 
+// Robust CORS Configuration
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, Postman, etc)
+        // Allow requests with no origin (mobile apps, curl, etc)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
+
+        // Normalize origins (remove trailing slash for comparison)
+        const normalizedOrigin = origin.replace(/\/$/, '');
+        const allowed = allowedOrigins.map(url => url.replace(/\/$/, ''));
+
+        if (allowed.includes(normalizedOrigin)) {
             callback(null, true);
         } else {
+            console.log(`❌ CORS BLOCKED: ${origin}. Allowed: ${allowedOrigins.join(', ')}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Enable pre-flight for all routes
+app.options('*', cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
