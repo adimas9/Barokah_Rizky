@@ -10,29 +10,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    process.env.FRONTEND_URL // Production frontend URL
-].filter(Boolean);
-
-// Robust CORS Configuration
+// Simplified CORS: Allow any origin that connects (Reflects Request Origin)
 app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, curl, etc)
-        if (!origin) return callback(null, true);
-
-        // Normalize origins (remove trailing slash for comparison)
-        const normalizedOrigin = origin.replace(/\/$/, '');
-        const allowed = allowedOrigins.map(url => url.replace(/\/$/, ''));
-
-        if (allowed.includes(normalizedOrigin)) {
-            callback(null, true);
-        } else {
-            console.log(`❌ CORS BLOCKED: ${origin}. Allowed: ${allowedOrigins.join(', ')}`);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
