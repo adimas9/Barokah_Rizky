@@ -10,16 +10,26 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-// Simplified CORS: Allow any origin that connects (Reflects Request Origin)
-app.use(cors({
-    origin: true,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// MANUAL CORS HANDLING (Nuclear Option)
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    // Allow explicitly the Vercel domain (and localhost for testing)
+    const allowed = ['https://barokah-rizky.vercel.app', 'http://localhost:5173', 'http://localhost:3000'];
 
-// Enable pre-flight for all routes
-app.options('*', cors());
+    if (allowed.includes(origin) || !origin) {
+        res.header("Access-Control-Allow-Origin", origin || "*");
+    }
+
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+    res.header("Access-Control-Allow-Credentials", "true");
+
+    // Intercept OPTIONS method
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
