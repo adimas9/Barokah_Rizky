@@ -34,6 +34,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/setup', require('./routes/setup')); // Register setup route
 
 // Health check
 app.get('/api/health', (req, res) => {
