@@ -31,10 +31,10 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Routes
+// Routes - setup must be first
+app.use('/api/setup', require('./routes/setup'));
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
-app.use('/api/setup', require('./routes/setup')); // Register setup route
 
 // Health check
 app.get('/api/health', (req, res) => {
