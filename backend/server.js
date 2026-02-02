@@ -55,8 +55,51 @@ async function autoSetupDatabase() {
     try {
         console.log("🚀 Starting Auto Database Setup...");
 
+        // 1. Users Table (Keep existing logic)
         await db.query(`CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL UNIQUE, password VARCHAR(255) NOT NULL, role ENUM('owner', 'customer') NOT NULL)`);
-        await db.query(`CREATE TABLE IF NOT EXISTS transactions (id INT AUTO_INCREMENT PRIMARY KEY, date DATETIME DEFAULT CURRENT_TIMESTAMP, customer_name VARCHAR(255), wood_type VARCHAR(50), total_volume DECIMAL(10, 4), total_price DECIMAL(15, 2), details JSON)`);
+
+        // 2. Check and Fix Transactions Table
+        try {
+            // Check if table exists and has the correct column
+            const [columns] = await db.query(`SHOW COLUMNS FROM transactions LIKE 'is_owner_input'`);
+
+            if (columns.length === 0) {
+                console.log("⚠️ Detected old 'transactions' schema. Recreating tables...");
+                await db.query(`DROP TABLE IF EXISTS transaction_items`); // Drop child first
+                await db.query(`DROP TABLE IF EXISTS transactions`);      // Drop parent
+            }
+        } catch (err) {
+            // Table might not exist, ignore
+        }
+
+        // 3. Create Transactions Table (Correct Schema)
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INT AUTO_INCREMENT PRIMARY KEY, 
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP, 
+                customer_name VARCHAR(255), 
+                is_owner_input BOOLEAN DEFAULT 0,
+                grand_total DECIMAL(15, 2), 
+                total_volume DECIMAL(10, 4), 
+                created_by VARCHAR(255)
+            )
+        `);
+
+        // 4. Create Transaction Items Table (Missing previously)
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS transaction_items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                transaction_id INT,
+                type VARCHAR(50),
+                length DECIMAL(10, 2),
+                diameter DECIMAL(10, 2),
+                diameter_class VARCHAR(50),
+                isi DECIMAL(10, 4),
+                FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
+            )
+        `);
+
+        // 5. Default Users
         await db.query(`INSERT IGNORE INTO users (username, password, role) VALUES ('owner', 'owner123', 'owner'), ('customer', 'customer123', 'customer')`);
 
         console.log("✅ AUTO DATABASE SETUP COMPLETED!");
